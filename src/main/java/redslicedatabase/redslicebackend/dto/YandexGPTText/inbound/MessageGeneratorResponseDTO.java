@@ -1,9 +1,13 @@
 package redslicedatabase.redslicebackend.dto.YandexGPTText.inbound;
 
+/*
+DTO класс для получения сгенерированного сообщения от генератора
+ */
+
 import lombok.Data;
 
 @Data
-public class YandexResponseDTO {
+public class MessageGeneratorResponseDTO {
     private Message message;
     private Usage usage;
 

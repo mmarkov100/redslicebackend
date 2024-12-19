@@ -1,0 +1,15 @@
+package redslicedatabase.redslicebackend.dto.User.inbound;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class UserUpdateRequestDTO {
+    private int totalTokens;
+    private Long starredChatId;
+}
