@@ -11,6 +11,4 @@ import lombok.Setter;
 @AllArgsConstructor
 public class UserCreateRequestDTO {
     private String email;
-    private String uidFirebase;
-    private int totalTokens;
 }

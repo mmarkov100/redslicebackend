@@ -1,7 +1,7 @@
 package redslicedatabase.redslicebackend.dto.Message.inbound;
 
 /*
-DTO сообщения для выходящих данных
+DTO сообщения для выходящих данных, приходит от датабазы
  */
 
 import lombok.Getter;

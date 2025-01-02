@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.client.RestTemplate;
 import redslicedatabase.redslicebackend.dto.Branch.inbound.BranchCreateRequestDTO;
+import redslicedatabase.redslicebackend.dto.Branch.outbound.BranchCreateDatabaseDTO;
 import redslicedatabase.redslicebackend.dto.Branch.outbound.BranchDTO;
 
 import java.util.List;
@@ -24,11 +25,17 @@ public class BranchRepository {
     }
 
     // Метод репозитория для создания ветки
-    public BranchDTO createBranch(BranchCreateRequestDTO branchRequest) {
+    public BranchDTO createBranch(BranchCreateRequestDTO branchRequest, String uidFirebase) {
         String databaseUrl = "http://localhost:8083/branches";
 
+        BranchCreateDatabaseDTO branchCreateDatabaseDTO = new BranchCreateDatabaseDTO();
+        branchCreateDatabaseDTO.setUidFirebase(uidFirebase);
+        branchCreateDatabaseDTO.setChatId(branchRequest.getChatId());
+        branchCreateDatabaseDTO.setParentBranchId(branchRequest.getParentBranchId());
+        branchCreateDatabaseDTO.setMessageStartId(branchRequest.getMessageStartId());
+
         ResponseEntity<BranchDTO> response = restTemplate.postForEntity(
-                databaseUrl, branchRequest, BranchDTO.class
+                databaseUrl, branchCreateDatabaseDTO, BranchDTO.class
         );
 
         if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
@@ -38,8 +45,8 @@ public class BranchRepository {
     }
 
     // Метод репозитория для просмотра веток чата
-    public List<BranchDTO> getBranchesByChatId(Long chatId) {
-        String databaseUrl = "http://localhost:8083/branches/chat/" + chatId;
+    public List<BranchDTO> getBranchesByChatId(Long chatId, String uidFirebase) {
+        String databaseUrl = "http://localhost:8083/branches/chat/" + chatId + "/validate?uidFirebase=" + uidFirebase;
 
         ResponseEntity<BranchDTO[]> response = restTemplate.getForEntity(
                 databaseUrl, BranchDTO[].class
@@ -52,8 +59,8 @@ public class BranchRepository {
     }
 
     // Метод репозитория для удаления конкретной ветки
-    public void deleteBranch(Long branchId) {
-        String databaseUrl = "http://localhost:8083/branches/" + branchId;
+    public void deleteBranch(Long branchId, String uidFirebase) {
+        String databaseUrl = "http://localhost:8083/branches/" + branchId + "/validate?uidFirebase=" + uidFirebase;
 
         restTemplate.delete(databaseUrl);
     }

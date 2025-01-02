@@ -1,4 +1,4 @@
-package redslicedatabase.redslicebackend.dto.Chat.inbound;
+package redslicedatabase.redslicebackend.dto.Chat.outbound;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,7 +9,8 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ChatCreateRequestDTO {
+public class ChatCreateDatabaseDTO {
+    private String uidFirebase;
     private String chatName;
     private double temperature;
     private String context;

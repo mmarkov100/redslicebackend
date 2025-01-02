@@ -5,10 +5,13 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import redslicedatabase.redslicebackend.dto.Chat.inbound.ChatCreateRequestDTO;
 import redslicedatabase.redslicebackend.dto.Chat.inbound.ChatUpdateRequestDTO;
+import redslicedatabase.redslicebackend.dto.Chat.outbound.ChatCreateDatabaseDTO;
 import redslicedatabase.redslicebackend.dto.Chat.outbound.ChatDTO;
+import redslicedatabase.redslicebackend.dto.Chat.outbound.ChatUpdateDatabaseDTO;
 
 import java.util.List;
 
@@ -23,11 +26,18 @@ public class ChatRepository {
     }
 
     // Создание нового чата
-    public ChatDTO createChat(ChatCreateRequestDTO chatRequest) {
+    public ChatDTO createChat(ChatCreateRequestDTO chatRequest, String uidFirebase) {
         String databaseUrl = "http://localhost:8083/chats";
 
+        ChatCreateDatabaseDTO chatCreateDatabaseDTO = new ChatCreateDatabaseDTO();
+        chatCreateDatabaseDTO.setUidFirebase(uidFirebase);
+        chatCreateDatabaseDTO.setChatName(chatRequest.getChatName());
+        chatCreateDatabaseDTO.setTemperature(chatRequest.getTemperature());
+        chatCreateDatabaseDTO.setContext(chatRequest.getContext());
+        chatCreateDatabaseDTO.setModelUri(chatRequest.getModelUri());
+
         ResponseEntity<ChatDTO> response = restTemplate.postForEntity(
-                databaseUrl, chatRequest, ChatDTO.class
+                databaseUrl, chatCreateDatabaseDTO, ChatDTO.class
         );
 
         if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
@@ -37,11 +47,19 @@ public class ChatRepository {
     }
 
     // Обновление настроек в чате
-    public ChatDTO updateChatSettings(Long chatId, ChatUpdateRequestDTO chatRequest) {
+    public ChatDTO updateChatSettings(Long chatId, ChatUpdateRequestDTO chatRequest, String uidFirebase) {
         String databaseUrl = "http://localhost:8083/chats/" + chatId;
 
+        ChatUpdateDatabaseDTO chatUpdateDatabaseDTO = new ChatUpdateDatabaseDTO();
+        chatUpdateDatabaseDTO.setUidFirebase(uidFirebase);
+        chatUpdateDatabaseDTO.setChatName(chatRequest.getChatName());
+        chatUpdateDatabaseDTO.setTemperature(chatRequest.getTemperature());
+        chatUpdateDatabaseDTO.setContext(chatRequest.getContext());
+        chatUpdateDatabaseDTO.setModelUri(chatRequest.getModelUri());
+        chatUpdateDatabaseDTO.setSelectedBranchId(chatRequest.getSelectedBranchId());
+
         ResponseEntity<ChatDTO> response = restTemplate.exchange(
-                databaseUrl, HttpMethod.PUT, new HttpEntity<>(chatRequest), ChatDTO.class
+                databaseUrl, HttpMethod.PUT, new HttpEntity<>(chatUpdateDatabaseDTO), ChatDTO.class
         );
 
         if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
@@ -51,33 +69,37 @@ public class ChatRepository {
     }
 
     // Просмотр всех чатов пользователя
-    public List<ChatDTO> getUserChats(Long userId) {
-        String databaseUrl = "http://localhost:8083/chats/user/" + userId;
+    public List<ChatDTO> getUserChats(String uidFirebase) {
+        String databaseUrl = "http://localhost:8083/chats/user/uid/" + uidFirebase;
 
-        ResponseEntity<ChatDTO[]> response = restTemplate.getForEntity(databaseUrl, ChatDTO[].class);
+        try{
+            ResponseEntity<ChatDTO[]> response = restTemplate.getForEntity(databaseUrl, ChatDTO[].class);
 
-        if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-            return List.of(response.getBody());
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                return List.of(response.getBody());
+            }
+        } catch (HttpClientErrorException.NotFound e) {
+            // Если чатов нет, возвращаем пустой список
+            return List.of();
         }
-        throw new RuntimeException("Failed to get user chats. Response code: " + response.getStatusCode());
+        throw new RuntimeException("Failed to get user chats");
     }
 
-    // Просмотр конкретного чата
-    public ChatDTO getChatById(Long chatId) {
-        String databaseUrl = "http://localhost:8083/chats/" + chatId;
-
-        ResponseEntity<ChatDTO> response = restTemplate.getForEntity(databaseUrl, ChatDTO.class);
-
-        if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-            return response.getBody();
-        }
-        throw new RuntimeException("Failed to get chat by ID: " + chatId);
-    }
+//    // Просмотр конкретного чата
+//    public ChatDTO getChatById(Long chatId) {
+//        String databaseUrl = "http://localhost:8083/chats/" + chatId;
+//
+//        ResponseEntity<ChatDTO> response = restTemplate.getForEntity(databaseUrl, ChatDTO.class);
+//
+//        if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+//            return response.getBody();
+//        }
+//        throw new RuntimeException("Failed to get chat by ID: " + chatId);
+//    }
 
     // Удаление чата
-    public void deleteChat(Long chatId) {
-        String databaseUrl = "http://localhost:8083/chats/" + chatId;
-
+    public void deleteChat(Long chatId, String uidFirebase) {
+        String databaseUrl = "http://localhost:8083/chats/" + chatId + "/validate?uidFirebase=" + uidFirebase;
         restTemplate.delete(databaseUrl);
     }
 }

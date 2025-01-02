@@ -1,4 +1,4 @@
-package redslicedatabase.redslicebackend;
+package redslicedatabase.redslicebackend.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

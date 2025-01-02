@@ -10,19 +10,24 @@ import lombok.Setter;
 @Setter
 @Getter
 public class MessageOutBoundDTO {
-
+    private String uidFirebase;
+    private Long branchId;
     private String role;
     private String text;
     private Integer totalTokens;
     private Integer inputTokens;
     private Integer completionTokens;
 
-    public MessageOutBoundDTO(String role,
+    public MessageOutBoundDTO(String uidFirebase,
+                              Long branchId,
+                              String role,
                               String text,
                               Integer totalTokens,
                               Integer inputTokens,
                               Integer completionTokens
     ) {
+        this.uidFirebase = uidFirebase;
+        this.branchId = branchId;
         this.role = role;
         this.text = text;
         this.totalTokens = totalTokens;

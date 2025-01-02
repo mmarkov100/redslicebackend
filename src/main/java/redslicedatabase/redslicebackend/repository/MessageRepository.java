@@ -7,6 +7,7 @@ package redslicedatabase.redslicebackend.repository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import redslicedatabase.redslicebackend.dto.Message.inbound.MessageInboundDTO;
 import redslicedatabase.redslicebackend.dto.Message.outbound.MessagePairOutboundDTO;
@@ -40,19 +41,23 @@ public class MessageRepository {
 
     }
 
-    public List<MessageInboundDTO> getMessagesByBranchId(Long branchId) {
+    public List<MessageInboundDTO> getMessagesByBranchId(Long branchId, String uidFirebase) {
         // Адрес, где находится сервер базы данных и эндпоинт
-        String databaseUrl = "http://localhost:8083/messages/branch/" + branchId.toString();
+        String databaseUrl = "http://localhost:8083/messages/branch/" + branchId.toString() + "/validate?uidFirebase=" + uidFirebase;
 
-        // Делаем GET-запрос с помощью restTemplate
-        ResponseEntity<MessageInboundDTO[]> response = restTemplate.getForEntity(
-                databaseUrl, MessageInboundDTO[].class
-        );
+        try {// Делаем GET-запрос с помощью restTemplate
+            ResponseEntity<MessageInboundDTO[]> response = restTemplate.getForEntity(
+                    databaseUrl, MessageInboundDTO[].class
+            );
 
-        // Проверяем успешность запроса и возвращаем данные
-        if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-            return List.of(response.getBody()); // Преобразуем массив в список
+            // Проверяем успешность запроса и возвращаем данные
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                return List.of(response.getBody()); // Преобразуем массив в список
+            }
+        } catch (HttpClientErrorException.NotFound e) {
+            // Если чатов нет, возвращаем пустой список
+            return List.of();
         }
-        throw new RuntimeException("Failed to get messages from the database. Response code: " + response.getStatusCode());
+        throw new RuntimeException("Failed to get messages from the database.");
     }
 }
