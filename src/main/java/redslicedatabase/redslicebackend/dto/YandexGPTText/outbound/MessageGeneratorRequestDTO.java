@@ -4,9 +4,7 @@ package redslicedatabase.redslicebackend.dto.YandexGPTText.outbound;
 DTO класс для отправки запроса на генерацию
  */
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 
@@ -23,13 +21,25 @@ public class MessageGeneratorRequestDTO {
         private boolean stream;
         private int maxTokens;
         private double temperature;
+        private ReasoningOptions reasoningOptions;
 
         public CompletionOptions(boolean stream,
                                  int maxTokens,
-                                 double temperature) {
+                                 double temperature,
+                                 ReasoningOptions reasoningOptions) {
             this.stream = stream;
             this.maxTokens = maxTokens;
             this.temperature = temperature;
+            this.reasoningOptions = reasoningOptions;
+        }
+
+        @Data
+        public static class ReasoningOptions {
+            private String mode;
+
+            public ReasoningOptions(String mode){
+                this.mode = mode;
+            }
         }
     }
 

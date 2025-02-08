@@ -40,10 +40,11 @@ public class MessageService {
     // метод для запроса генерации текста от YandexGPT
     public MessageGeneratorResponseDTO generateMessage(MessageGeneratorRequestDTO requestDTO) {
 
-        String yandexUrl = "http://localhost:8082/api/yandex/process";
+        String yandexUrl = "http://localhost:8085/api/yandex/process";
         logger.info("POST request to YandexGPT: URL={}, Payload={}", yandexUrl, requestDTO);
 
         try {
+            logger.info("Reasoning: {}", requestDTO.getCompletionOptions().getReasoningOptions().getMode());
             // Отправляем запрос к генератору
             ResponseEntity<MessageGeneratorResponseDTO> response = restTemplate.postForEntity(
                     yandexUrl, requestDTO, MessageGeneratorResponseDTO.class
@@ -87,7 +88,8 @@ public class MessageService {
         MessageGeneratorRequestDTO.CompletionOptions completionOptions = new MessageGeneratorRequestDTO.CompletionOptions(
                 false, // stream - отключен
                 2000,  // maxTokens - задаем фиксированно
-                generateDTO.getTemperature()
+                generateDTO.getTemperature(), // задаем температуру
+                new MessageGeneratorRequestDTO.CompletionOptions.ReasoningOptions("DISABLED") // Режим размышления отключен
         );
 
         // Конвертируем список сообщений в изменяемый список
