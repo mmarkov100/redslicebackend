@@ -16,6 +16,7 @@ import redslicedatabase.redslicebackend.features.message.dto.inbound.MessageInbo
 import redslicedatabase.redslicebackend.features.message.repository.MessageRepository;
 import redslicedatabase.redslicebackend.features.authfirebase.service.AccountCheckService;
 import redslicedatabase.redslicebackend.features.generatetextyandex.service.YandexTextService;
+import redslicedatabase.redslicebackend.features.message.service.MessageService;
 
 import java.util.List;
 
@@ -28,6 +29,8 @@ public class MessageController {
     @Autowired
     private YandexTextService yandexTextService;
     @Autowired
+    private MessageService messageService;
+    @Autowired
     private MessageRepository messageRepository;
     @Autowired
     private AccountCheckService accountCheckService;
@@ -39,7 +42,7 @@ public class MessageController {
         logger.info("POST: message, BranchID: {}", messageGenerateDTO.getBranchId());
         String uidFirebase = accountCheckService.getUidFirebase(JWTFirebase); // Получаем uid Пользователя
         logger.info("POST branch: User uidFirebase: {}", uidFirebase);
-        return ResponseEntity.ok(yandexTextService.generateMessageProcessing(messageGenerateDTO, uidFirebase)); // Отправляем логику в сервис
+        return ResponseEntity.ok(messageService.generateMessageProcessing(messageGenerateDTO, uidFirebase)); // Отправляем логику в сервис
     }
 
     // Метод для получения всех сообщений ветки

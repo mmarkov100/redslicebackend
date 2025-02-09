@@ -17,6 +17,8 @@ public class MessageGeneratorRequestDTO {
     private List<Message> messages;
 
     @Data
+    @Getter
+    @Setter
     public static class CompletionOptions {
         private boolean stream;
         private int maxTokens;
@@ -34,6 +36,8 @@ public class MessageGeneratorRequestDTO {
         }
 
         @Data
+        @Getter
+        @Setter
         public static class ReasoningOptions {
             private String mode;
 
@@ -44,6 +48,8 @@ public class MessageGeneratorRequestDTO {
     }
 
     @Data
+    @Getter
+    @Setter
     public static class Message {
         private String role;
         private String text;

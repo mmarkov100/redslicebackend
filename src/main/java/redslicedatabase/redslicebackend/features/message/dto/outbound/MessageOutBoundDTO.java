@@ -17,6 +17,7 @@ public class MessageOutBoundDTO {
     private Integer totalTokens;
     private Integer inputTokens;
     private Integer completionTokens;
+    private String usedModel;
 
     public MessageOutBoundDTO(String uidFirebase,
                               Long branchId,
@@ -24,7 +25,8 @@ public class MessageOutBoundDTO {
                               String text,
                               Integer totalTokens,
                               Integer inputTokens,
-                              Integer completionTokens
+                              Integer completionTokens,
+                              String usedModel
     ) {
         this.uidFirebase = uidFirebase;
         this.branchId = branchId;
@@ -33,5 +35,6 @@ public class MessageOutBoundDTO {
         this.totalTokens = totalTokens;
         this.inputTokens = inputTokens;
         this.completionTokens = completionTokens;
+        this.usedModel = usedModel;
     }
 }
