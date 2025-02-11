@@ -3,6 +3,9 @@ package redslicedatabase.redslicebackend.features.generatetextyandex.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -10,6 +13,7 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.http.ResponseEntity;
 
+import redslicedatabase.redslicebackend.features.generatetextyandex.config.YandexTextConfig;
 import redslicedatabase.redslicebackend.features.message.dto.inbound.MessageGenerateDTO;
 import redslicedatabase.redslicebackend.features.message.dto.inbound.MessageGenerateMessageDTO;
 import redslicedatabase.redslicebackend.features.generatetextyandex.dto.YandexGPTText.outbound.MessageGeneratorRequestDTO;
@@ -25,9 +29,12 @@ public class YandexTextService {
 
     private final RestTemplate restTemplate;
 
+    private final YandexTextConfig yandexTextConfig;
+
     @Autowired
-    public YandexTextService(RestTemplate restTemplate) {
+    public YandexTextService(RestTemplate restTemplate, YandexTextConfig yandexTextConfig) {
         this.restTemplate = restTemplate;
+        this.yandexTextConfig = yandexTextConfig;
     }
 
 
@@ -39,9 +46,14 @@ public class YandexTextService {
 
         try {
             logger.info("Reasoning: {}", requestDTO.getCompletionOptions().getReasoningOptions().getMode());
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("apiGeneratorKey", yandexTextConfig.getApiGenerationKey());
+            HttpEntity<MessageGeneratorRequestDTO> entity = new HttpEntity<>(requestDTO, headers);
+
             // Отправляем запрос к генератору
             ResponseEntity<MessageGeneratorResponseDTO> response = restTemplate.postForEntity(
-                    yandexUrl, requestDTO, MessageGeneratorResponseDTO.class
+                    yandexUrl, entity, MessageGeneratorResponseDTO.class
             );
 
             // Проверяем успешность ответа

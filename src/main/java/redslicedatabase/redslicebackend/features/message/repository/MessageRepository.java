@@ -1,14 +1,15 @@
 package redslicedatabase.redslicebackend.features.message.repository;
 
-/*
-Репозиторий для работы с базой данных
- */
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import redslicedatabase.redslicebackend.core.config.ApiConfig;
 import redslicedatabase.redslicebackend.features.message.dto.inbound.MessageInboundDTO;
 import redslicedatabase.redslicebackend.features.message.dto.outbound.MessagePairOutboundDTO;
 
@@ -18,19 +19,26 @@ import java.util.List;
 public class MessageRepository {
 
     private final RestTemplate restTemplate;
+    private final ApiConfig apiConfig;
 
     @Autowired
-    public MessageRepository(RestTemplate restTemplate) {
+    public MessageRepository(RestTemplate restTemplate, ApiConfig apiConfig) {
         this.restTemplate = restTemplate;
+        this.apiConfig = apiConfig;
     }
 
     public List<MessageInboundDTO> savePairMessages(MessagePairOutboundDTO messages) {
         // Адрес, где находится сервер базы данных и эндпоинт
         String databaseUrl = "http://localhost:8083/messages/pair";
 
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("apiDBKey", apiConfig.getApiDatabaseKey());
+        HttpEntity<MessagePairOutboundDTO> entity = new HttpEntity<>(messages, headers);
+
         // Делаем POST-запрос с помощью restTemplate
         ResponseEntity<MessageInboundDTO[]> response = restTemplate.postForEntity(
-                databaseUrl, messages, MessageInboundDTO[].class
+                databaseUrl, entity, MessageInboundDTO[].class
         );
 
         // Проверяем успешность запроса и возвращаем данные
@@ -38,16 +46,21 @@ public class MessageRepository {
             return List.of(response.getBody()); // Преобразуем массив в список
         }
         throw new RuntimeException("Failed to save messages to the database. Response code: " + response.getStatusCode());
-
     }
 
     public List<MessageInboundDTO> getMessagesByBranchId(Long branchId, String uidFirebase) {
         // Адрес, где находится сервер базы данных и эндпоинт
         String databaseUrl = "http://localhost:8083/messages/branch/" + branchId.toString() + "/validate?uidFirebase=" + uidFirebase;
 
-        try {// Делаем GET-запрос с помощью restTemplate
-            ResponseEntity<MessageInboundDTO[]> response = restTemplate.getForEntity(
-                    databaseUrl, MessageInboundDTO[].class
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("apiDBKey", apiConfig.getApiDatabaseKey());
+        HttpEntity<Void> entity = new HttpEntity<>(headers); // Пустое тело для GET-запроса
+
+        try {
+            // Делаем GET-запрос с помощью restTemplate
+            ResponseEntity<MessageInboundDTO[]> response = restTemplate.exchange(
+                    databaseUrl, HttpMethod.GET, entity, MessageInboundDTO[].class
             );
 
             // Проверяем успешность запроса и возвращаем данные

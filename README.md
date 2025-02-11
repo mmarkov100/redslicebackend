@@ -63,3 +63,51 @@ RedSlice Backend — это микросервисный бэкенд для в�
 - **POST /messages/branch/{branchId}** — Получение всех сообщений ветки.
 
 Полное описание параметров запроса и примеры можно найти в [API документации](API.md).
+
+
+## Чтобы начать пользоваться
+
+- Для начала надо клонировать репозиторий к себе в папку
+```
+git clone https://github.com/mmarkov100/redslicebackend
+```
+- С firebase получить файл serviceAccountKey.json для вашего проекта в firebase
+- Создать файл по пути src/main/java/redslicedatabase/redslicebackend/features/generatetextyandex/config/YandexTextConfig.java
+```java
+package redslicedatabase.redslicebackend.features.generatetextyandex.config;
+
+import lombok.Getter;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
+
+@Component
+@Getter
+@Configuration
+public class YandexTextConfig {
+
+    private final String apiGenerationKey = "someApiKey";
+}
+
+```
+
+Это нужно для защиты связи между генератором и бэком
+
+- Также создайте файл по директории src/main/java/redslicedatabase/redslicebackend/core/config/ApiConfig.java
+```java
+package redslicedatabase.redslicebackend.core.config;
+
+import lombok.Getter;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
+
+@Component
+@Configuration
+@Getter
+public class ApiConfig {
+
+    private final String apiDatabaseKey = "someApiKey";
+}
+
+```
+
+Также для защиты связи между бэком и базой данных

@@ -2,11 +2,14 @@ package redslicedatabase.redslicebackend.features.chat.repository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import redslicedatabase.redslicebackend.core.config.ApiConfig;
 import redslicedatabase.redslicebackend.features.chat.dto.inbound.ChatCreateRequestDTO;
 import redslicedatabase.redslicebackend.features.chat.dto.inbound.ChatUpdateRequestDTO;
 import redslicedatabase.redslicebackend.features.chat.dto.outbound.ChatCreateDatabaseDTO;
@@ -19,10 +22,12 @@ import java.util.List;
 public class ChatRepository {
 
     private final RestTemplate restTemplate;
+    private final ApiConfig apiConfig;
 
     @Autowired
-    public ChatRepository(RestTemplate restTemplate) {
+    public ChatRepository(RestTemplate restTemplate, ApiConfig apiConfig) {
         this.restTemplate = restTemplate;
+        this.apiConfig = apiConfig;
     }
 
     // Создание нового чата
@@ -36,8 +41,13 @@ public class ChatRepository {
         chatCreateDatabaseDTO.setContext(chatRequest.getContext());
         chatCreateDatabaseDTO.setModelUri(chatRequest.getModelUri());
 
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("apiDBKey", apiConfig.getApiDatabaseKey());
+        HttpEntity<ChatCreateDatabaseDTO> entity = new HttpEntity<>(chatCreateDatabaseDTO, headers);
+
         ResponseEntity<ChatDTO> response = restTemplate.postForEntity(
-                databaseUrl, chatCreateDatabaseDTO, ChatDTO.class
+                databaseUrl, entity, ChatDTO.class
         );
 
         if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
@@ -58,8 +68,13 @@ public class ChatRepository {
         chatUpdateDatabaseDTO.setModelUri(chatRequest.getModelUri());
         chatUpdateDatabaseDTO.setSelectedBranchId(chatRequest.getSelectedBranchId());
 
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("apiDBKey", apiConfig.getApiDatabaseKey());
+        HttpEntity<ChatUpdateDatabaseDTO> entity = new HttpEntity<>(chatUpdateDatabaseDTO, headers);
+
         ResponseEntity<ChatDTO> response = restTemplate.exchange(
-                databaseUrl, HttpMethod.PUT, new HttpEntity<>(chatUpdateDatabaseDTO), ChatDTO.class
+                databaseUrl, HttpMethod.PUT, entity, ChatDTO.class
         );
 
         if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
@@ -72,8 +87,15 @@ public class ChatRepository {
     public List<ChatDTO> getUserChats(String uidFirebase) {
         String databaseUrl = "http://localhost:8083/chats/user/uid/" + uidFirebase;
 
-        try{
-            ResponseEntity<ChatDTO[]> response = restTemplate.getForEntity(databaseUrl, ChatDTO[].class);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("apiDBKey", apiConfig.getApiDatabaseKey());
+        HttpEntity<Void> entity = new HttpEntity<>(headers); // Пустое тело для GET-запроса
+
+        try {
+            ResponseEntity<ChatDTO[]> response = restTemplate.exchange(
+                    databaseUrl, HttpMethod.GET, entity, ChatDTO[].class
+            );
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 return List.of(response.getBody());
@@ -85,21 +107,15 @@ public class ChatRepository {
         throw new RuntimeException("Failed to get user chats");
     }
 
-//    // Просмотр конкретного чата
-//    public ChatDTO getChatById(Long chatId) {
-//        String databaseUrl = "http://localhost:8083/chats/" + chatId;
-//
-//        ResponseEntity<ChatDTO> response = restTemplate.getForEntity(databaseUrl, ChatDTO.class);
-//
-//        if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-//            return response.getBody();
-//        }
-//        throw new RuntimeException("Failed to get chat by ID: " + chatId);
-//    }
-
     // Удаление чата
     public void deleteChat(Long chatId, String uidFirebase) {
         String databaseUrl = "http://localhost:8083/chats/" + chatId + "/validate?uidFirebase=" + uidFirebase;
-        restTemplate.delete(databaseUrl);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("apiDBKey", apiConfig.getApiDatabaseKey());
+        HttpEntity<Void> entity = new HttpEntity<>(headers); // Пустое тело для DELETE-запроса
+
+        restTemplate.exchange(databaseUrl, HttpMethod.DELETE, entity, Void.class);
     }
 }
