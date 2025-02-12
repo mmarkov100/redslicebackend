@@ -27,8 +27,10 @@ public class YandexTextService {
 
     private static final Logger logger = LoggerFactory.getLogger(YandexTextService.class);
 
+    @Autowired
     private final RestTemplate restTemplate;
 
+    @Autowired
     private final YandexTextConfig yandexTextConfig;
 
     @Autowired
