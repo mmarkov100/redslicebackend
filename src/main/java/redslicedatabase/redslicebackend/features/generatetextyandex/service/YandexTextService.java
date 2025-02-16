@@ -116,7 +116,7 @@ public class YandexTextService {
 
         // Возвращаем DTO для запроса генерации
         return new MessageGeneratorRequestDTO(
-                generateDTO.getModelUri(),
+                generateDTO.getModel(),
                 completionOptions,
                 messages
         );

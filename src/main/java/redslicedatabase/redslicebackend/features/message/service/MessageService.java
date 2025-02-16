@@ -44,7 +44,7 @@ public class MessageService {
         MessageGeneratorResponseDTO responseDTO = yandexTextService.generateMessage(messageGeneratorRequestDTO);
 
         // Конвертируем MessageGeneratorResponseDTO в MessageOutBoundDTO для успешной отправки в датабазу
-        MessageOutBoundDTO outboundDTO = convertToMessageOutBoundDTO(responseDTO, uidFirebase, messageGenerateDTO.getBranchId(), messageGenerateDTO.getModelUri());
+        MessageOutBoundDTO outboundDTO = convertToMessageOutBoundDTO(responseDTO, uidFirebase, messageGenerateDTO.getBranchId(), messageGenerateDTO.getModel());
 
         // Собираем DTO для отправки в датабазу
         MessagePairOutboundDTO messagePairOutboundDTO = convertToMessagePairOutboundDTO(

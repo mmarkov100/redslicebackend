@@ -11,6 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import redslicedatabase.redslicebackend.features.genapi.dto.inbound.MessageGeneratorResponseGenApiDTO;
+import redslicedatabase.redslicebackend.features.genapi.service.ChatGPT4oMiniService;
+import redslicedatabase.redslicebackend.features.genapi.service.DeepSeekV3Service;
+import redslicedatabase.redslicebackend.features.genapi.service.GenApiService;
 import redslicedatabase.redslicebackend.features.message.dto.inbound.MessageGenerateDTO;
 import redslicedatabase.redslicebackend.features.message.dto.inbound.MessageInboundDTO;
 import redslicedatabase.redslicebackend.features.message.repository.MessageRepository;
@@ -34,6 +38,10 @@ public class MessageController {
     private MessageRepository messageRepository;
     @Autowired
     private AccountCheckService accountCheckService;
+    @Autowired
+    private DeepSeekV3Service deepSeekV3Service;
+    @Autowired
+    private ChatGPT4oMiniService chatGPT4oMiniService;
 
     // Метод генерации нового сообщения и сохранения в базу данных
     @PostMapping
@@ -43,6 +51,30 @@ public class MessageController {
         String uidFirebase = accountCheckService.getUidFirebase(JWTFirebase); // Получаем uid Пользователя
         logger.info("POST branch: User uidFirebase: {}", uidFirebase);
         return ResponseEntity.ok(messageService.generateMessageProcessing(messageGenerateDTO, uidFirebase)); // Отправляем логику в сервис
+    }
+
+    @PostMapping("/genapi")
+    public ResponseEntity<?> generateGenApiMessage(@RequestHeader String JWTFirebase,
+                                                   @RequestBody MessageGenerateDTO messageGenerateDTO) throws FirebaseAuthException{
+        logger.info("POST: message, BranchID: {}", messageGenerateDTO.getBranchId());
+        String uidFirebase = accountCheckService.getUidFirebase(JWTFirebase); // Получаем uid Пользователя
+
+        // Проверяем модель и выбираем соответствующий сервис
+        GenApiService genApiService = selectGenApiService(messageGenerateDTO.getModel());
+
+        MessageGeneratorResponseGenApiDTO messageGeneratorResponseGenApiDTO = genApiService.generateResponse();
+
+        logger.info("POST branch: User uidFirebase: {}", uidFirebase);
+        return null;
+    }
+
+    // Метод для выбора подходящего сервиса в зависимости от модели
+    private GenApiService selectGenApiService(String model) {
+        return switch (model) {
+            case "chatgpt4o-mini" -> chatGPT4oMiniService;
+            case "deepseek-v3" -> deepSeekV3Service;
+            default -> throw new IllegalArgumentException("Unsupported model");
+        };
     }
 
     // Метод для получения всех сообщений ветки
