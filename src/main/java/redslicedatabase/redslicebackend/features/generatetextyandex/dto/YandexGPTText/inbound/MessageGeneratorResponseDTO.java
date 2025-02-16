@@ -30,5 +30,6 @@ public class MessageGeneratorResponseDTO {
         private int inputTextTokens;
         private int totalTokens;
         private int completionTokens;
+        private double cost;
     }
 }

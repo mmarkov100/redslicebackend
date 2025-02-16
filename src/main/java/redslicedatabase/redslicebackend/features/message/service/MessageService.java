@@ -83,7 +83,8 @@ public class MessageService {
                 usage.getTotalTokens(),
                 usage.getInputTextTokens(),
                 usage.getCompletionTokens(),
-                modelUri
+                modelUri,
+                usage.getCost()
         );
 
         logger.info("Converted MessageOutBoundDTO: Role = {}, Tokens = {}", message.getRole(), usage.getTotalTokens());
@@ -135,7 +136,8 @@ public class MessageService {
                 0, // Общее количество токенов = 0
                 0, // Количество токенов входного текста = 0
                 0,  // Количество токенов завершения = 0
-                "user"
+                "user",
+                0.0
         );
     }
 }

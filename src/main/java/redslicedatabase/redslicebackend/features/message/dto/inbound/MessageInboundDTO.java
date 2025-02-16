@@ -22,6 +22,7 @@ public class MessageInboundDTO {
     private Integer completionTokens;
     private LocalDateTime dateCreate;
     private String usedModel;
+    private Double cost;
 
     public MessageInboundDTO(Long id,
                              Long branchId,
@@ -31,7 +32,8 @@ public class MessageInboundDTO {
                              Integer inputTokens,
                              Integer completionTokens,
                              LocalDateTime dateCreate,
-                             String usedModel
+                             String usedModel,
+                             Double cost
     ) {
         this.id = id;
         this.branchId = branchId;
@@ -42,5 +44,6 @@ public class MessageInboundDTO {
         this.completionTokens = completionTokens;
         this.dateCreate = dateCreate;
         this.usedModel = usedModel;
+        this.cost = cost;
     }
 }
