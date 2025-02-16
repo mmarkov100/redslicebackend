@@ -13,7 +13,7 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.http.ResponseEntity;
 
-import redslicedatabase.redslicebackend.features.generatetextyandex.config.YandexTextConfig;
+import redslicedatabase.redslicebackend.core.config.TextGeneratingConfig;
 import redslicedatabase.redslicebackend.features.message.dto.inbound.MessageGenerateDTO;
 import redslicedatabase.redslicebackend.features.message.dto.inbound.MessageGenerateMessageDTO;
 import redslicedatabase.redslicebackend.features.generatetextyandex.dto.YandexGPTText.outbound.MessageGeneratorRequestDTO;
@@ -31,12 +31,12 @@ public class YandexTextService {
     private final RestTemplate restTemplate;
 
     @Autowired
-    private final YandexTextConfig yandexTextConfig;
+    private final TextGeneratingConfig textGeneratingConfig;
 
     @Autowired
-    public YandexTextService(RestTemplate restTemplate, YandexTextConfig yandexTextConfig) {
+    public YandexTextService(RestTemplate restTemplate, TextGeneratingConfig textGeneratingConfig) {
         this.restTemplate = restTemplate;
-        this.yandexTextConfig = yandexTextConfig;
+        this.textGeneratingConfig = textGeneratingConfig;
     }
 
 
@@ -50,7 +50,7 @@ public class YandexTextService {
             logger.info("Reasoning: {}", requestDTO.getCompletionOptions().getReasoningOptions().getMode());
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("apiGeneratorKey", yandexTextConfig.getApiGenerationKey());
+            headers.set("apiGeneratorKey", textGeneratingConfig.getApiGenerationKey());
             HttpEntity<MessageGeneratorRequestDTO> entity = new HttpEntity<>(requestDTO, headers);
 
             // Отправляем запрос к генератору

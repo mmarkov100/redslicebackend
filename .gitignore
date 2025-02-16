@@ -1,6 +1,6 @@
 /src/main/resources/serviceAccountKey.json
-src/main/java/redslicedatabase/redslicebackend/features/generatetextyandex/config/YandexTextConfig.java
 src/main/java/redslicedatabase/redslicebackend/core/config/ApiConfig.java
+src/main/java/redslicedatabase/redslicebackend/core/config/TextGeneratingConfig.java
 
 
 HELP.md
