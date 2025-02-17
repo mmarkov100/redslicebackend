@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import redslicedatabase.redslicebackend.features.genapi.dto.inbound.MessageGeneratorResponseGenApiDTO;
+import redslicedatabase.redslicebackend.features.genapi.dto.outbound.GenApiRequest;
 import redslicedatabase.redslicebackend.features.genapi.service.ChatGPT4oMiniService;
 import redslicedatabase.redslicebackend.features.genapi.service.DeepSeekV3Service;
 import redslicedatabase.redslicebackend.features.genapi.service.GenApiService;
@@ -20,6 +21,7 @@ import redslicedatabase.redslicebackend.features.message.dto.inbound.MessageInbo
 import redslicedatabase.redslicebackend.features.message.repository.MessageRepository;
 import redslicedatabase.redslicebackend.features.authfirebase.service.AccountCheckService;
 import redslicedatabase.redslicebackend.features.generatetextyandex.service.YandexTextService;
+import redslicedatabase.redslicebackend.features.message.service.MessageGenApiService;
 import redslicedatabase.redslicebackend.features.message.service.MessageService;
 
 import java.util.List;
@@ -42,6 +44,8 @@ public class MessageController {
     private DeepSeekV3Service deepSeekV3Service;
     @Autowired
     private ChatGPT4oMiniService chatGPT4oMiniService;
+    @Autowired
+    private MessageGenApiService messageGenApiService;
 
     // Метод генерации нового сообщения и сохранения в базу данных
     @PostMapping
@@ -55,17 +59,22 @@ public class MessageController {
 
     @PostMapping("/genapi")
     public ResponseEntity<?> generateGenApiMessage(@RequestHeader String JWTFirebase,
-                                                   @RequestBody MessageGenerateDTO messageGenerateDTO) throws FirebaseAuthException{
+                                                   @RequestBody MessageGenerateDTO messageGenerateDTO) throws Exception {
         logger.info("POST: message, BranchID: {}", messageGenerateDTO.getBranchId());
         String uidFirebase = accountCheckService.getUidFirebase(JWTFirebase); // Получаем uid Пользователя
 
         // Проверяем модель и выбираем соответствующий сервис
         GenApiService genApiService = selectGenApiService(messageGenerateDTO.getModel());
 
-        MessageGeneratorResponseGenApiDTO messageGeneratorResponseGenApiDTO = genApiService.generateResponse();
+        // Конвертируем для отправки
+        GenApiRequest genApiRequest = genApiService.genApiRequestConvertDTO(messageGenerateDTO);
 
+        // Генерируем ответ от нейросети
+        MessageGeneratorResponseGenApiDTO messageGeneratorResponseGenApiDTO = genApiService.generateResponse(genApiRequest);
+
+        // Отправляем логику отправки для сохранения в бд в сервис
         logger.info("POST branch: User uidFirebase: {}", uidFirebase);
-        return null;
+        return ResponseEntity.ok(messageGenApiService.getMessages(messageGeneratorResponseGenApiDTO, messageGenerateDTO, uidFirebase));
     }
 
     // Метод для выбора подходящего сервиса в зависимости от модели
@@ -81,6 +90,7 @@ public class MessageController {
     @PostMapping("/branch/{branchId}")
     public ResponseEntity<List<MessageInboundDTO>> getMessages(@PathVariable Long branchId,
                                                                @RequestHeader String JWTFirebase) throws FirebaseAuthException {
+        logger.info("GOT JWT: {}", JWTFirebase);
         String uidFirebase = accountCheckService.getUidFirebase(JWTFirebase); // Получаем uid Пользователя
 
         return ResponseEntity.ok(messageRepository.getMessagesByBranchId(branchId, uidFirebase)); // Сохраняем в базе данных

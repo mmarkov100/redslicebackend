@@ -9,12 +9,16 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import redslicedatabase.redslicebackend.core.config.ApiConfig;
+import redslicedatabase.redslicebackend.core.config.TextGeneratingConfig;
 import redslicedatabase.redslicebackend.features.genapi.config.GenApiConfig;
 import redslicedatabase.redslicebackend.features.genapi.dto.inbound.MessageGeneratorResponseGenApiDTO;
 import redslicedatabase.redslicebackend.features.genapi.dto.outbound.ChatGPT4oMiniRequest;
 import redslicedatabase.redslicebackend.features.genapi.dto.outbound.GenApiRequest;
 import redslicedatabase.redslicebackend.features.message.dto.inbound.MessageGenerateDTO;
+import redslicedatabase.redslicebackend.features.message.dto.inbound.MessageGenerateMessageDTO;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class ChatGPT4oMiniService implements GenApiService{
@@ -24,7 +28,7 @@ public class ChatGPT4oMiniService implements GenApiService{
     @Autowired
     private GenApiConfig genApiConfig;
     @Autowired
-    private ApiConfig apiConfig;
+    private TextGeneratingConfig textGeneratingConfig;
 
     private final RestTemplate restTemplate;
 
@@ -38,7 +42,7 @@ public class ChatGPT4oMiniService implements GenApiService{
         String url = genApiConfig.getGenApiUrl(); //
 
         HttpHeaders headers = new HttpHeaders();
-        headers.set("apiGeneratorKey", apiConfig.getApiDatabaseKey());
+        headers.set("apiGeneratorKey", textGeneratingConfig.getApiGenerationKey());
 
         HttpEntity<GenApiRequest> entity = new HttpEntity<>(genApiRequest, headers);
 
@@ -55,12 +59,40 @@ public class ChatGPT4oMiniService implements GenApiService{
 
     @Override
     public GenApiRequest genApiRequestConvertDTO(MessageGenerateDTO messageGenerateDTO) {
-        GenApiRequest chat4oMiniGenApiRequest = new ChatGPT4oMiniRequest();
-        ChatGPT4oMiniRequest.Message message = new ChatGPT4oMiniRequest.Message();
-        ChatGPT4oMiniRequest.Message.Content content = new ChatGPT4oMiniRequest.Message.Content();
+        // Создаем новый объект ChatGPT4oMiniRequest
+        ChatGPT4oMiniRequest chat4oMiniGenApiRequest = new ChatGPT4oMiniRequest();
 
-        chat4oMiniGenApiRequest
+        // Устанавливаем температуру
+        chat4oMiniGenApiRequest.setTemperature(messageGenerateDTO.getTemperature());
 
-        return chat4oMiniGenApiRequest;
+        ChatGPT4oMiniRequest.Message contextMessage = new ChatGPT4oMiniRequest.Message();
+        ChatGPT4oMiniRequest.Message.Content contextContent = new ChatGPT4oMiniRequest.Message.Content();
+        contextContent.setType("text");  // Тип контента (можно менять, если нужно)
+        contextContent.setText(messageGenerateDTO.getContext());  // Контекстное сообщение
+        contextMessage.setRole("system");  // Тип роли для контекста (можно менять)
+        contextMessage.setContent(List.of(contextContent));  // Добавляем контент в сообщение
+
+        // Создаем список для всех сообщений
+        List<ChatGPT4oMiniRequest.Message> messageList = new ArrayList<>();
+        messageList.add(contextMessage);  // Добавляем контекстное сообщение
+
+        // Преобразуем все сообщения из MessageGenerateDTO в нужный формат
+        for (MessageGenerateMessageDTO msgDTO : messageGenerateDTO.getMessages()) {
+            ChatGPT4oMiniRequest.Message message = new ChatGPT4oMiniRequest.Message();
+            ChatGPT4oMiniRequest.Message.Content content = new ChatGPT4oMiniRequest.Message.Content();
+            content.setType("text");  // Тип контента
+            content.setText(msgDTO.getText());  // Устанавливаем текст из MessageGenerateMessageDTO
+
+            message.setRole(msgDTO.getRole());  // Устанавливаем роль
+            message.setContent(List.of(content));  // Добавляем контент в сообщение
+
+            messageList.add(message);  // Добавляем сообщение в список
+        }
+
+        // Устанавливаем все сообщения в ChatGPT4oMiniRequest
+        chat4oMiniGenApiRequest.setMessages(messageList);
+
+        return chat4oMiniGenApiRequest;  // Возвращаем конвертированный объект
     }
+
 }

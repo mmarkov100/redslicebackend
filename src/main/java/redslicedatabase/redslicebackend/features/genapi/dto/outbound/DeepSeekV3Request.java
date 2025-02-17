@@ -10,6 +10,8 @@ import java.util.List;
 @Setter
 @Data
 public class DeepSeekV3Request implements GenApiRequest {
+
+    private String model = "deepseek-v3";
     private List<Message> messages;
     private double temperature;
 

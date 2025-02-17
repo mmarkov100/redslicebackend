@@ -11,6 +11,7 @@ import java.util.List;
 @Data
 public class ChatGPT4oMiniRequest implements GenApiRequest {
 
+    private String model = "chatgpt4o-mini";
     private List<Message> messages;
     private double temperature;
 

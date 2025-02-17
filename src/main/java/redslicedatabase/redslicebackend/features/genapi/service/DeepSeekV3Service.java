@@ -9,11 +9,16 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import redslicedatabase.redslicebackend.core.config.ApiConfig;
+import redslicedatabase.redslicebackend.core.config.TextGeneratingConfig;
 import redslicedatabase.redslicebackend.features.genapi.config.GenApiConfig;
 import redslicedatabase.redslicebackend.features.genapi.dto.inbound.MessageGeneratorResponseGenApiDTO;
+import redslicedatabase.redslicebackend.features.genapi.dto.outbound.DeepSeekV3Request;
 import redslicedatabase.redslicebackend.features.genapi.dto.outbound.GenApiRequest;
 import redslicedatabase.redslicebackend.features.message.dto.inbound.MessageGenerateDTO;
+import redslicedatabase.redslicebackend.features.message.dto.inbound.MessageGenerateMessageDTO;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class DeepSeekV3Service implements GenApiService{
@@ -23,7 +28,7 @@ public class DeepSeekV3Service implements GenApiService{
     @Autowired
     private GenApiConfig genApiConfig;
     @Autowired
-    private ApiConfig apiConfig;
+    private TextGeneratingConfig textGeneratingConfig;
 
     private final RestTemplate restTemplate;
 
@@ -37,7 +42,7 @@ public class DeepSeekV3Service implements GenApiService{
         String url = genApiConfig.getGenApiUrl(); //
 
         HttpHeaders headers = new HttpHeaders();
-        headers.set("apiGeneratorKey", apiConfig.getApiDatabaseKey());
+        headers.set("apiGeneratorKey", textGeneratingConfig.getApiGenerationKey());
 
         HttpEntity<GenApiRequest> entity = new HttpEntity<>(genApiRequest, headers);
 
@@ -53,6 +58,29 @@ public class DeepSeekV3Service implements GenApiService{
 
     @Override
     public GenApiRequest genApiRequestConvertDTO(MessageGenerateDTO messageGenerateDTO) {
-        return null;
+        DeepSeekV3Request deepSeekV3Request = new DeepSeekV3Request();
+
+        deepSeekV3Request.setTemperature(messageGenerateDTO.getTemperature());
+
+        DeepSeekV3Request.Message contextMessage = new DeepSeekV3Request.Message();
+        contextMessage.setContent(messageGenerateDTO.getContext());  // Контекстное сообщение
+        contextMessage.setRole("system");  // Тип роли для контекста (можно менять)
+
+        List<DeepSeekV3Request.Message> messageList = new ArrayList<>();
+        messageList.add(contextMessage);  // Добавляем контекстное сообщение
+
+        for (MessageGenerateMessageDTO msgDTO : messageGenerateDTO.getMessages()) {
+            DeepSeekV3Request.Message message = new DeepSeekV3Request.Message();
+
+            message.setRole(msgDTO.getRole());  // Устанавливаем роль
+            message.setContent(msgDTO.getText());  // Добавляем контент в сообщение
+
+            messageList.add(message);  // Добавляем сообщение в список
+        }
+
+        // Устанавливаем все сообщения в GenApiRequest
+        deepSeekV3Request.setMessages(messageList);
+
+        return deepSeekV3Request;
     }
 }

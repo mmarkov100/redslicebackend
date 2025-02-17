@@ -45,6 +45,7 @@ public class ChatController {
     @PostMapping("/user")
     public ResponseEntity<List<ChatDTO>> getUserChats(@RequestHeader String JWTFirebase) throws FirebaseAuthException {
         logger.info("GET: chats");
+        logger.info("GOT JWT: {}", JWTFirebase);
         String uidFirebase = accountCheckService.getUidFirebase(JWTFirebase); // Получаем uid Пользователя
         logger.info("GET chats: User uidFirebase: {}", uidFirebase);
         List<ChatDTO> userChats = chatRepository.getUserChats(uidFirebase); // Получаем чаты
